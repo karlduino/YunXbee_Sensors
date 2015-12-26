@@ -9,11 +9,16 @@
 //
 // This example reads values from a DHT22 sensor every 10 seconds and
 // sends them to the coordinator XBee, to be read by Coordinator.ino.
+//
+// Actually revised to use a TMP36 temperature sensor (attached to A1)
+// and a regular photosensitive resistor (attached to A0)
+//
+// TMP36 has 47k resistor between ground and analog out
+// photoresistor has 10k pull-down resistor
 
 #include <XBee.h>
 #include <Printers.h>
 #include <AltSoftSerial.h>
-#include <DHT.h>
 #include "binary.h"
 
 XBeeWithCallbacks xbee;
@@ -22,8 +27,10 @@ AltSoftSerial SoftSerial;
 #define DebugSerial Serial
 #define XBeeSerial SoftSerial
 
-// Sensor type is DHT22, connected to pin D4.
-DHT dht(4, DHT22);
+// TMP36 connected to A1
+#define TEMP A1
+// photoresistor connected to A0
+#define LIGHT A0
 
 void setup() {
   // Setup debug serial output
@@ -39,8 +46,8 @@ void setup() {
   xbee.onPacketError(printErrorCb, (uintptr_t)(Print*)&DebugSerial);
   xbee.onResponse(printErrorCb, (uintptr_t)(Print*)&DebugSerial);
 
-  // Setup DHT sensor
-  dht.begin();
+  pinMode(TEMP, INPUT);
+  pinMode(LIGHT, INPUT);
 
   // Send a first packet right away
   sendPacket();
@@ -54,10 +61,10 @@ void sendPacket() {
     // Allocate 9 payload bytes: 1 type byte plus two floats of 4 bytes each
     AllocBuffer<9> packet;
 
-    // Packet type, temperature, humidity
+    // Packet type, temperature, light
     packet.append<uint8_t>(1);
-    packet.append<float>(dht.readTemperature());
-    packet.append<float>(dht.readHumidity());
+    packet.append<float>(readTemperature());
+    packet.append<float>(readLight());
     txRequest.setPayload(packet.head, packet.len());
 
     // And send it
@@ -75,4 +82,18 @@ void loop() {
     sendPacket();
     last_tx_time = millis();
   }
+}
+
+float readTemperature(void)
+{
+  float voltage = analogRead(TEMP)/1024.0*5.0;
+  float tempC = voltage*100.0-50.0;
+  float tempF = tempC*9.0/5.0+32.0;
+  return tempF;
+}
+
+float readLight(void)
+{
+  float light = analogRead(LIGHT)/1024.0;
+  return light;
 }
