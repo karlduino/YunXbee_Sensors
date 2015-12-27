@@ -42,7 +42,7 @@ AltSoftSerial SoftSerial;
 // photoresistor connected to A0
 #define LIGHT A0
 int last_temp_time = 0;
-#define TIME_BETWEEN_TEMPS = 10000
+#define TIME_BETWEEN_TEMPS 10000
 
 void setup() {
   // Setup debug serial output
@@ -109,7 +109,7 @@ void loop() {
   xbee.loop();
 
   if(millis() - last_temp_time > TIME_BETWEEN_TEMPS) {
-    last_temp_time = mills();
+    last_temp_time = millis();
     float temp = readTemperature();
     float light = readLight();
     DebugSerial.print(F("Temperature: "));
@@ -117,6 +117,7 @@ void loop() {
     DebugSerial.print(F("    "));
     DebugSerial.print(F("Light: "));
     DebugSerial.println(light);
+  }
 }
 
 float readTemperature(void)
