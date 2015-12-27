@@ -41,7 +41,7 @@ AltSoftSerial SoftSerial;
 #define TEMP A1
 // photoresistor connected to A0
 #define LIGHT A0
-int last_temp_time = 0;
+long last_temp_time = 0;
 #define TIME_BETWEEN_TEMPS 10000
 
 void setup() {
