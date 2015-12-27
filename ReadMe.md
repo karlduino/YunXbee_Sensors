@@ -19,4 +19,7 @@ to be able to use the Y&uacute;n.
   router XBee to be run on the Arduino Uno with XBee router
 - [`TempLightReceive`](TempLightReceive) receives the values via the
   coordinator XBee, to be run on the Arduino Y&uacute;n
-
+- [`TempLightBeebotte`](TempLightBeebotte) is like
+  [`TempLightReceive`](TempLightReceive), but it also sends the input
+  measurements to [Beebotte](http://beebotte.com). (Also, the coordinator
+  Arduino also has temperature and light sensors.)

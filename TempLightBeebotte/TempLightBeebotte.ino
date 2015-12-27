@@ -15,6 +15,11 @@
 // Using a Sparkfun Xbee shield, with pins 0-3 of Yun
 // not connected to the shield, and with shield pins 2 & 13 connected, and also
 // shield pins 3 and 5 connected (so that 13 is Rx, and 5 is Tx)
+//
+// Actually revised to use a TMP36 temperature sensor (attached to A1)
+// and a regular photosensitive resistor (attached to A0), with 10k
+// pull-down resistor
+
 
 #include <XBee.h>
 #include <Printers.h>
@@ -30,7 +35,14 @@ AltSoftSerial SoftSerial;
 
 #define ALTSS_USE_TIMER3
 #define INPUT_CAPTURE_PIN      13 // receive
-#define OUTPUT_COMPARE_A_PIN        5 // transmit
+#define OUTPUT_COMPARE_A_PIN    5 // transmit
+
+// TMP36 connected to A1
+#define TEMP A1
+// photoresistor connected to A0
+#define LIGHT A0
+int last_temp_time = 0;
+#define TIME_BETWEEN_TEMPS = 10000
 
 void setup() {
   // Setup debug serial output
@@ -95,4 +107,28 @@ void processRxPacket(ZBExplicitRxResponse& rx, uintptr_t) {
 void loop() {
   // Check the serial port to see if there is a new packet available
   xbee.loop();
+
+  if(millis() - last_temp_time > TIME_BETWEEN_TEMPS) {
+    last_temp_time = mills();
+    float temp = readTemperature();
+    float light = readLight();
+    DebugSerial.print(F("Temperature: "));
+    DebugSerial.print(temp);
+    DebugSerial.print(F("    "));
+    DebugSerial.print(F("Light: "));
+    DebugSerial.println(light);
+}
+
+float readTemperature(void)
+{
+  float voltage = analogRead(TEMP)/1024.0*5.0;
+  float tempC = voltage*100.0-50.0;
+  float tempF = tempC*9.0/5.0+32.0;
+  return tempF;
+}
+
+float readLight(void)
+{
+  float light = analogRead(LIGHT)/1024.0;
+  return light;
 }
