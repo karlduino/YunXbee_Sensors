@@ -11,10 +11,8 @@
 // sends them to the coordinator XBee, to be read by Coordinator.ino.
 //
 // Actually revised to use a TMP36 temperature sensor (attached to A1)
-// and a regular photosensitive resistor (attached to A0)
-//
-// TMP36 has 47k resistor between ground and analog out
-// photoresistor has 10k pull-down resistor
+// and a regular photosensitive resistor (attached to A0), with 10k
+// pull-down resistor
 
 #include <XBee.h>
 #include <Printers.h>
