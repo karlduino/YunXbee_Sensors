@@ -25,7 +25,14 @@
 #include <Printers.h>
 #include <AltSoftSerial.h>
 #include "binary.h"
+#include <Bridge.h>
 #include <Console.h>
+#include <YunClient.h>
+#include <Adafruit_MQTT.h>
+#include <Adafruit_MQTT_Client.h>
+#include "private.h"
+
+YunClient client;
 
 XBeeWithCallbacks xbee;
 
@@ -42,7 +49,16 @@ AltSoftSerial SoftSerial;
 // photoresistor connected to A0
 #define LIGHT A0
 long last_temp_time = 0;
-#define TIME_BETWEEN_TEMPS 10000
+#define TIME_BETWEEN_TEMPS 180000
+
+// beebotte stuff
+const char MQTT_SERVER[] PROGMEM    = "mqtt.beebotte.com";
+const char MQTT_CLIENTID[] PROGMEM  = "";
+const char MQTT_USERNAME[] PROGMEM  = MY_BEEBOTTE_KEY; // defined in private.h
+const char MQTT_PASSWORD[] PROGMEM  = "";
+const int MQTT_PORT = 1883;
+Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, MQTT_PORT, MQTT_CLIENTID,
+                          MQTT_USERNAME, MQTT_PASSWORD);
 
 void setup() {
   // Setup debug serial output
@@ -62,22 +78,65 @@ void setup() {
   xbee.onZBExplicitRxResponse(processRxPacket);
 }
 
+void loop() {
+  // Check the serial port to see if there is a new packet available
+  xbee.loop();
+
+  if(millis() - last_temp_time > TIME_BETWEEN_TEMPS) {
+    last_temp_time = millis();
+    publish(F("basement/temperature"), readTemperature());
+    publish(F("basement/light"), readLight());
+    DebugSerial.print(F("Published temp/light level"));
+  }
 }
 
+void publish(const __FlashStringHelper *resource, float value) {
+  // Use JSON to wrap the data, so Beebotte will remember the data
+  // (instead of just publishing it to whoever is currently 
+  // listening).
+  String data;
+  data += "{\"data\": ";
+  data += value;
+  data += ", \"write\": true}";
+  DebugSerial.print(F("Publishing "));
+  DebugSerial.print(data);
+  DebugSerial.print(F( " to "));
+  DebugSerial.println(resource);
+  // Publish data and try to reconnect when publishing data fails
+  if (!mqtt.publish(resource, data.c_str())) {
+    DebugSerial.println(F("Failed to publish, trying reconnect..."));
+    connect();
+    if (!mqtt.publish(resource, data.c_str()))
+      DebugSerial.println(F("Still failed to publish data"));
+  }
+}
+
+void connect() {
+  client.stop(); // Ensure any old connection is closed
+  uint8_t ret = mqtt.connect();
+  if (ret == 0)
+    DebugSerial.println(F("MQTT connected"));
+  else
+    DebugSerial.println(mqtt.connectErrorString(ret));
+}
 
 void processRxPacket(ZBExplicitRxResponse& rx, uintptr_t) {
   Buffer b(rx.getData(), rx.getDataLength());
   uint8_t type = b.remove<uint8_t>();
-
+  XBeeAddress64 addr = rx.getRemoteAddress64();
+  DebugSerial.print(F("Temp/Light (explicit) packet received from "));
+  printHex(DebugSerial, addr);
   if (type == 1 && b.len() == 8) {
-    DebugSerial.print(F("Temp/Light (explicit) packet received from "));
-    printHex(DebugSerial, rx.getRemoteAddress64());
-    DebugSerial.println();
-    DebugSerial.print(F("Temperature: "));
-    DebugSerial.println(b.remove<float>());
-    DebugSerial.print(F("Light: "));
-    DebugSerial.println(b.remove<float>());
-    return;
+    if(addr == BEDROOM_XBEE_ADDR) { // defined in private.h
+      publish(F("bedroom/temperature"), b.remove<float>());
+      publish(F("bedroom/light"), b.remove<float>());
+      return;
+    }
+    if(addr == LIVINGROOM_XBEE_ADDR) { // defined in private.h
+      publish(F("livingroom/temperature"), b.remove<float>());
+      publish(F("livingroom/light"), b.remove<float>());
+      return;
+    }
   }
 
   DebugSerial.println(F("Unknown or invalid packet"));
@@ -85,22 +144,6 @@ void processRxPacket(ZBExplicitRxResponse& rx, uintptr_t) {
 }
 
 
-
-void loop() {
-  // Check the serial port to see if there is a new packet available
-  xbee.loop();
-
-  if(millis() - last_temp_time > TIME_BETWEEN_TEMPS) {
-    last_temp_time = millis();
-    float temp = readTemperature();
-    float light = readLight();
-    DebugSerial.print(F("Temperature: "));
-    DebugSerial.print(temp);
-    DebugSerial.print(F("    "));
-    DebugSerial.print(F("Light: "));
-    DebugSerial.println(light);
-  }
-}
 
 float readTemperature(void)
 {
