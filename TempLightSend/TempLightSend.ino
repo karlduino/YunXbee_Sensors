@@ -69,14 +69,15 @@ void sendPacket() {
     xbee.send(txRequest);
 }
 
-unsigned long last_tx_time = 0;
+unsigned long last_tx_time = 4294767295; // largest unsigned long - 200,000
+#define TIME_BETWEEN_TEMPS 180000
 
 void loop() {
   // Check the serial port to see if there is a new packet available
   xbee.loop();
 
-  // Send a packet every 10 seconds
-  if (millis() - last_tx_time > 10000) {
+  // Send a packet every so often seconds
+  if (millis() - last_tx_time > TIME_BETWEEN_TEMPS) {
     sendPacket();
     last_tx_time = millis();
   }

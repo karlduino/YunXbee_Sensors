@@ -48,8 +48,8 @@ AltSoftSerial SoftSerial;
 #define TEMP A1
 // photoresistor connected to A0
 #define LIGHT A0
-long last_temp_time = -180000;
-#define TIME_BETWEEN_TEMPS 10000
+unsigned long last_temp_time = 4294767295; // largest unsigned long - 200,000
+#define TIME_BETWEEN_TEMPS 180000
 
 // beebotte stuff
 const char MQTT_SERVER[] PROGMEM    = "mqtt.beebotte.com";
@@ -64,8 +64,6 @@ void setup() {
   // Setup debug serial output
   Bridge.begin();
   Console.begin();
-  while(!Console); // wait for console to open
-  DebugSerial.println(F("Starting..."));
 
   // Setup XBee serial communication
   XBeeSerial.begin(9600);
