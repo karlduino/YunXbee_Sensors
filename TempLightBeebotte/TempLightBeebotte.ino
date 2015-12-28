@@ -60,26 +60,8 @@ void setup() {
   xbee.onPacketError(printErrorCb, (uintptr_t)(Print*)&DebugSerial);
   xbee.onResponse(printErrorCb, (uintptr_t)(Print*)&DebugSerial);
   xbee.onZBExplicitRxResponse(processRxPacket);
-  xbee.onZBRxResponse(processRxPacket);
 }
 
-void processRxPacket(ZBRxResponse& rx, uintptr_t) {
-  Buffer b(rx.getData(), rx.getDataLength());
-  uint8_t type = b.remove<uint8_t>();
-
-  if (type == 1 && b.len() == 8) {
-    DebugSerial.print(F("Temp/Light packet received from "));
-    printHex(DebugSerial, rx.getRemoteAddress64());
-    DebugSerial.println();
-    DebugSerial.print(F("Temperature: "));
-    DebugSerial.println(b.remove<float>());
-    DebugSerial.print(F("Light: "));
-    DebugSerial.println(b.remove<float>());
-    return;
-  }
-
-  DebugSerial.println(F("Unknown or invalid packet"));
-  printResponse(rx, DebugSerial);
 }
 
 
