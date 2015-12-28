@@ -48,8 +48,8 @@ AltSoftSerial SoftSerial;
 #define TEMP A1
 // photoresistor connected to A0
 #define LIGHT A0
-long last_temp_time = 0;
-#define TIME_BETWEEN_TEMPS 180000
+long last_temp_time = -180000;
+#define TIME_BETWEEN_TEMPS 10000
 
 // beebotte stuff
 const char MQTT_SERVER[] PROGMEM    = "mqtt.beebotte.com";
@@ -79,15 +79,14 @@ void setup() {
 }
 
 void loop() {
-  // Check the serial port to see if there is a new packet available
-  xbee.loop();
-
   if(millis() - last_temp_time > TIME_BETWEEN_TEMPS) {
     last_temp_time = millis();
     publish(F("basement/temperature"), readTemperature());
     publish(F("basement/light"), readLight());
-    DebugSerial.print(F("Published temp/light level"));
   }
+
+  // Check the serial port to see if there is a new packet available
+  xbee.loop();
 }
 
 void publish(const __FlashStringHelper *resource, float value) {
@@ -126,6 +125,7 @@ void processRxPacket(ZBExplicitRxResponse& rx, uintptr_t) {
   XBeeAddress64 addr = rx.getRemoteAddress64();
   DebugSerial.print(F("Temp/Light (explicit) packet received from "));
   printHex(DebugSerial, addr);
+  DebugSerial.println();
   if (type == 1 && b.len() == 8) {
     if(addr == BEDROOM_XBEE_ADDR) { // defined in private.h
       publish(F("bedroom/temperature"), b.remove<float>());
@@ -137,6 +137,8 @@ void processRxPacket(ZBExplicitRxResponse& rx, uintptr_t) {
       publish(F("livingroom/light"), b.remove<float>());
       return;
     }
+    DebugSerial.println(F("Unknown address"));
+    return;
   }
 
   DebugSerial.println(F("Unknown or invalid packet"));
