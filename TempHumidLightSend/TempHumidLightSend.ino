@@ -7,7 +7,7 @@
 //
 // NO WARRANTY OF ANY KIND IS PROVIDED.
 //
-// This example reads values from a DHT22 sensor every 6 minutes
+// This example reads values from a DHT22 sensor every 5 minutes
 // sends them to the coordinator XBee, to be read by Coordinator.ino.
 
 #include <XBee.h>
@@ -68,7 +68,7 @@ void sendPacket() {
 }
 
 unsigned long last_tx_time = 4294567295; // largest unsigned long - 400,000
-#define TIME_BETWEEN_TEMPS 360000
+#define TIME_BETWEEN_TEMPS 300000
 
 void loop() {
   // Check the serial port to see if there is a new packet available

@@ -48,7 +48,7 @@ DHT dht(DHTPIN, DHTTYPE);
 // photoresistor connected to A0
 #define LIGHT A0
 unsigned long last_temp_time = 4294567295; // largest unsigned long - 400,000
-#define TIME_BETWEEN_TEMPS 360000
+#define TIME_BETWEEN_TEMPS 300000 // 5 min
 
 // beebotte stuff
 const char MQTT_SERVER[] PROGMEM    = "mqtt.beebotte.com";
