@@ -25,3 +25,12 @@ to be able to use the Y&uacute;n.
   [`TempLightReceive`](TempLightReceive), but it also sends the input
   measurements to [Beebotte](http://beebotte.com). (Also, the coordinator
   Arduino also has temperature and light sensors.)
+
+Later, I received three DHT22 sensors, and replaced the TMP36 ones
+with those.
+
+- [`TempHumidLight`](TempHumidLight) and
+  [`TempHumidLightYun`](TempHumidLightYun) for testing the sensors
+- [`TempHumidLightSend`](TempHumidLightSend) and
+  [`TempHumidLightBeebotte`](TempHumidLightBeebotte) for gathering and
+  sending the measurements to [Beebotte](http://beebotte.com).
