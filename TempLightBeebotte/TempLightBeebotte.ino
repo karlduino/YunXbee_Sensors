@@ -65,6 +65,10 @@ void setup() {
   Bridge.begin();
   Console.begin();
 
+  // set pins to input
+  pinMode(TEMP, input);
+  pinMode(LIGHT, input);
+
   // Setup XBee serial communication
   XBeeSerial.begin(9600);
   xbee.begin(XBeeSerial);
