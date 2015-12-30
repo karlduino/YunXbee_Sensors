@@ -15,6 +15,8 @@ to be able to use the Y&uacute;n.
 
 - [`TempLight`](TempLight) is a sketch for just reading the sensor
   values and printing them to Serial
+- [`TempLightYun`](TempLightYun) is similar, but for the Y&uacute;n
+  (using `Console` in place of `Serial`).
 - [`TempLightSend`](TempLightSend) further sends the values via the
   router XBee to be run on the Arduino Uno with XBee router
 - [`TempLightReceive`](TempLightReceive) receives the values via the
